@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv"
+        android:overScrollMode="never"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
+    <FrameLayout
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp">
+        <ImageView
+            android:id="@+id/img_shopcar"
+            android:layout_gravity="bottom"
+            android:src="@drawable/shopcar2"
+            android:layout_width="45dp"
+            android:layout_height="45dp" />
+        <TextView
+            android:id="@+id/tv_num"
+            android:background="@drawable/shape_circle_red"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textColor="#fff"
+            android:text="0"
+            android:layout_gravity="right"
+            android:layout_width="18dp"
+            android:layout_height="18dp" />
+    </FrameLayout>
+</RelativeLayout>
