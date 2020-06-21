@@ -45,14 +45,15 @@ public class MainActivity extends AppCompatActivity {
         baseQuickAdapter = new BaseQuickAdapter<String, BaseViewHolder>(R.layout.item_shocar,datas) {
             @Override
             protected void convert(BaseViewHolder helper, final String item) {
-                ImageView imageViewIcon = helper.getView(R.id.item_shocar_img_icon);
+                final ImageView imageViewIcon = helper.getView(R.id.item_shocar_img_icon);
                 Glide.with(mContext).load(item).into(imageViewIcon);
                 final ImageView imageViewAdd = helper.getView(R.id.item_shocar_img_add);
                 imageViewAdd.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         num++;
-                        showAddShopCarAnim(imageViewAdd,item);
+                        showAddShopCarAnim(imageViewIcon,item);
+//                        showAddShopCarAnim(imageViewAdd,item);
                     }
                 });
             }
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         if(startView!=null && !TextUtils.isEmpty(animImgUrl)){
             animManager = new AnimManager.Builder()
                     .with(this)
+                    .animModule(AnimManager.AnimModule.BIG_CIRCLE)//图片的动画模式，小的或者大的（仿每日优鲜）
                     .startView(startView)//开始位置的控件
                     .endView(imageViewShopCar)//结束位置的控件
                     .listener(new AnimManager.AnimListener() {

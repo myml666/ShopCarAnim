@@ -14,6 +14,7 @@ package com.itfitness.shopcaranim.manager;
  */
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +23,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -36,6 +38,8 @@ import com.itfitness.shopcaranim.R;
 
 import java.lang.ref.WeakReference;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class AnimManager {
     private WeakReference<Activity> mActivity;
     private AnimListener mListener;
@@ -48,7 +52,7 @@ public class AnimManager {
     private float animWidth;
     private float animHeight;
     private ViewGroup animMaskLayout;
-
+    private AnimModule animModule = AnimModule.SMALL;
     private AnimManager() {
         this(new Builder());
     }
@@ -64,6 +68,7 @@ public class AnimManager {
         this.scale = builder.scale;
         this.animWidth = builder.animWidth;
         this.animHeight = builder.animHeight;
+        this.animModule = builder.animModule;
     }
 
 
@@ -86,26 +91,53 @@ public class AnimManager {
     }
 
     private void createImageAndAnim(final int[] startLocation, final int[] endLocation) {
+        if(animModule == AnimModule.SMALL){
+            final ImageView animImageView = new ImageView(getActivity());
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ConvertUtils.dp2px(animWidth),
+                    ConvertUtils.dp2px(animHeight));
+            animImageView.setLayoutParams(layoutParams);
+            Glide.with(getActivity()).load(imageUrl)
+                    .asBitmap()
+                    .listener(new RequestListener<String, Bitmap>() {
+                        @Override
+                        public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+                            return false;
+                        }
 
-        final ImageView animImageView = new ImageView(getActivity());
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ConvertUtils.dp2px(animWidth),
-                ConvertUtils.dp2px(animHeight));
-        animImageView.setLayoutParams(layoutParams);
-        Glide.with(getActivity()).load(imageUrl)
-                .asBitmap()
-                .listener(new RequestListener<String, Bitmap>() {
-                    @Override
-                    public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
-                        return false;
-                    }
+                        @Override
+                        public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                            setAnim(animImageView, startLocation, endLocation);
+                            return false;
+                        }
+                    })
+                    .into(animImageView);
+        }else {
+            if (startView != null) {
+                final CircleImageView circleImageView = new CircleImageView(getActivity());
+//            ViewGroup.LayoutParams starViewtLayoutParams = startView.getLayoutParams();
+                int min = Math.min(startView.getMeasuredWidth(), startView.getMeasuredHeight());
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(min,
+                        min);
+                circleImageView.setBorderColor(Color.WHITE);
+                circleImageView.setBorderWidth(3);
+                circleImageView.setLayoutParams(layoutParams);
+                Glide.with(getActivity()).load(imageUrl)
+                        .asBitmap()
+                        .listener(new RequestListener<String, Bitmap>() {
+                            @Override
+                            public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+                                return false;
+                            }
 
-                    @Override
-                    public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                        setAnim(animImageView, startLocation, endLocation);
-                        return false;
-                    }
-                })
-                .into(animImageView);
+                            @Override
+                            public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                                setAnim(circleImageView, startLocation, endLocation);
+                                return false;
+                            }
+                        })
+                        .into(circleImageView);
+            }
+        }
     }
 
 
@@ -120,11 +152,11 @@ public class AnimManager {
         final View view = addViewToAnimLayout(v, startLocation);
 
         //终点位置
-        int endX = endLocation[0] - startLocation[0] + 20;
+        int endX = endLocation[0] - startLocation[0] + endView.getMeasuredWidth()/2;
         // 动画位移的y坐标
-        int endY = endLocation[1] - startLocation[1] + 20;
+        int endY = endLocation[1] - startLocation[1] + 10;
         TranslateAnimation translateAnimationX = new TranslateAnimation(0, endX, 0, 0);
-        translateAnimationX.setInterpolator(new LinearInterpolator());
+        translateAnimationX.setInterpolator(new AccelerateInterpolator());
         // 动画重复执行的次数
         translateAnimationX.setRepeatCount(0);
         translateAnimationX.setFillAfter(true);
@@ -133,11 +165,18 @@ public class AnimManager {
         translateAnimationY.setInterpolator(new AccelerateInterpolator());
         translateAnimationY.setRepeatCount(0);
         translateAnimationX.setFillAfter(true);
-
         AnimationSet set = new AnimationSet(false);
         set.setFillAfter(false);
+        if(animModule == AnimModule.BIG_CIRCLE){
+            ScaleAnimation scaleAnimation = new ScaleAnimation(1.0f, 0.1f, 1.0f, 0.1f);
+            scaleAnimation.setInterpolator(new AccelerateInterpolator());
+            scaleAnimation.setRepeatCount(0);
+            scaleAnimation.setFillAfter(true);
+            set.addAnimation(scaleAnimation);
+        }
         set.addAnimation(translateAnimationY);
         set.addAnimation(translateAnimationX);
+
         if (scale == 1) {
             // 计算屏幕最远两个点的直线距离
             double diagonalDef = Math.sqrt(Math.pow(ScreenUtils.getScreenWidth(), 2) + Math.pow(ScreenUtils.getScreenHeight(), 2));
@@ -147,7 +186,7 @@ public class AnimManager {
             scale = diagonal / diagonalDef;
         }
         // 动画的执行时间,计算出的时间小于300ms默认为300ms
-        set.setDuration((time * scale) < 500 ? 500 : (long) (time * scale));
+        set.setDuration((time * scale) < 1000 ? 1000 : (long) (time * scale));
         view.startAnimation(set);
         // 动画监听事件
         set.setAnimationListener(new Animation.AnimationListener() {
@@ -245,14 +284,17 @@ public class AnimManager {
         float animWidth;
         float animHeight;
         AnimListener listener;
-
+        private AnimModule animModule = AnimModule.SMALL;
         public Builder() {
             this.time = 1000;
             this.scale = 1;
             this.animHeight = 25;
             this.animWidth = 25;
         }
-
+        public Builder animModule(AnimModule animModule) {
+            this.animModule = animModule;
+            return this;
+        }
         public Builder with(Activity activity) {
             this.activity = new WeakReference<>(activity);
             return this;
@@ -327,5 +369,10 @@ public class AnimManager {
         public AnimManager build() {
             return new AnimManager(this);
         }
+    }
+
+    public enum AnimModule{
+        SMALL,//小的（默认）
+        BIG_CIRCLE//大的圆形
     }
 }
