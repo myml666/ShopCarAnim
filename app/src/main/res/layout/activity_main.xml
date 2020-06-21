@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rl_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -34,4 +35,12 @@
             android:layout_width="18dp"
             android:layout_height="18dp" />
     </FrameLayout>
+    <ImageView
+        android:id="@+id/img_share"
+        android:src="@drawable/eggla_btn_share_wrap"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp" />
 </RelativeLayout>
